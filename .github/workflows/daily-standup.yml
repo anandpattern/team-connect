@@ -2,9 +2,8 @@ name: Daily Standup Bot
 
 on:
   schedule:
-    # Runs Mon-Fri at 09:00 UTC — adjust cron time to match your standup time
-    # Example: 14:30 UTC = 10:00 AM ET, 09:00 UTC = 05:00 AM ET
-    - cron: '0 9 * * 1-5'
+    # Runs Mon-Fri at 11:00 AM IST (05:30 UTC)
+    - cron: '30 5 * * 1-5'
   workflow_dispatch:  # Allow manual trigger for testing
 
 jobs:
