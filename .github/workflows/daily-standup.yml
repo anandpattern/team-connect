@@ -1,0 +1,54 @@
+name: Daily Standup Bot
+
+on:
+  schedule:
+    # Runs Mon-Fri at 09:00 UTC — adjust cron time to match your standup time
+    # Example: 14:30 UTC = 10:00 AM ET, 09:00 UTC = 05:00 AM ET
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:  # Allow manual trigger for testing
+
+jobs:
+  join-standup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Join daily standup via AgentCall
+        env:
+          AGENTCALL_API_KEY: ${{ secrets.AGENTCALL_API_KEY }}
+        run: |
+          echo "Joining standup at $(date -u)"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST https://api.agentcall.dev/v1/calls \
+            -H "Authorization: Bearer $AGENTCALL_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "meet_url": "https://meet.google.com/gww-hbcs-fao",
+              "bot_name": "Standup Bot",
+              "mode": "audio",
+              "voice_strategy": "collaborative",
+              "transcription": true,
+              "collaborative": {
+                "trigger_words": ["hey bot", "bot"],
+                "context": "You are a helpful standup bot attending the daily team standup meeting. Listen actively and take notes. If asked, summarize what has been discussed.",
+                "barge_in_prevention": true
+              },
+              "max_duration": 3600000,
+              "alone_timeout": 300000,
+              "disclosure": {
+                "enabled": true,
+                "message": "This meeting is being attended by an AI bot for note-taking purposes.",
+                "delay_seconds": 5
+              }
+            }')
+
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "Successfully joined standup. Call ID: $(echo $BODY | grep -o '"id":"[^"]*"' | head -1)"
+          else
+            echo "Failed to join standup. Check API key and meeting URL."
+            exit 1
+          fi
