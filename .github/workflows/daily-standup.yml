@@ -21,13 +21,13 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{
               "meet_url": "https://meet.google.com/gww-hbcs-fao",
-              "bot_name": "Standup Bot",
+              "bot_name": "Claude",
               "mode": "audio",
               "voice_strategy": "collaborative",
               "transcription": true,
               "collaborative": {
-                "trigger_words": ["hey bot", "bot"],
-                "context": "You are a helpful standup bot attending the daily team standup meeting. Listen actively and take notes. If asked, summarize what has been discussed.",
+                "trigger_words": ["claude", "hey claude"],
+                "context": "You are Claude, an AI assistant attending the daily standup meeting. Listen actively, take notes, and if asked, summarize what has been discussed.",
                 "barge_in_prevention": true
               },
               "max_duration": 3600000,
@@ -46,7 +46,7 @@ jobs:
           echo "Response: $BODY"
 
           if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
-            echo "Successfully joined standup. Call ID: $(echo $BODY | grep -o '"id":"[^"]*"' | head -1)"
+            echo "Successfully joined standup. Call ID: $(echo $BODY | grep -o '"call_id":"[^"]*"' | head -1)"
           else
             echo "Failed to join standup. Check API key and meeting URL."
             exit 1
