@@ -20,23 +20,13 @@ jobs:
             -H "Authorization: Bearer $AGENTCALL_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{
-              "meet_url": "https://meet.google.com/gww-hbcs-fao",
+              "meeting_url": "https://meet.google.com/gww-hbcs-fao",
               "bot_name": "Standup Bot",
               "mode": "audio",
               "voice_strategy": "collaborative",
-              "transcription": true,
-              "collaborative": {
-                "trigger_words": ["hey bot", "bot"],
-                "context": "You are a helpful standup bot attending the daily team standup meeting. Listen actively and take notes. If asked, summarize what has been discussed.",
-                "barge_in_prevention": true
-              },
-              "max_duration": 3600000,
-              "alone_timeout": 300000,
-              "disclosure": {
-                "enabled": true,
-                "message": "This meeting is being attended by an AI bot for note-taking purposes.",
-                "delay_seconds": 5
-              }
+              "trigger_words": "hey bot,bot",
+              "context": "You are a helpful standup bot attending the daily team standup meeting. Listen actively and take notes. If asked, summarize what has been discussed.",
+              "max_duration": 60
             }')
 
           HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
@@ -46,8 +36,9 @@ jobs:
           echo "Response: $BODY"
 
           if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
-            echo "Successfully joined standup. Call ID: $(echo $BODY | grep -o '"id":"[^"]*"' | head -1)"
+            CALL_ID=$(echo "$BODY" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+            echo "Successfully joined standup. Call ID: $CALL_ID"
           else
-            echo "Failed to join standup. Check API key and meeting URL."
+            echo "Failed to join standup. Check AGENTCALL_API_KEY secret and meeting URL."
             exit 1
           fi
